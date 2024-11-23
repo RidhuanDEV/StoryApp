@@ -1,7 +1,9 @@
 package com.dicoding.storyapp.data
 
 import android.util.Log
+import androidx.datastore.dataStore
 import androidx.lifecycle.liveData
+import com.dicoding.storyapp.data.api.ApiConfig
 import com.dicoding.storyapp.data.api.ApiService
 import com.dicoding.storyapp.data.api.ErrorResponse
 import com.dicoding.storyapp.data.api.FileUploadResponse
@@ -20,6 +22,7 @@ import java.io.IOException
 
 class UserRepository private constructor(
     private val apiService: ApiService,
+    private val userPreference: UserPreference
 ) {
 
     suspend fun registerUser(name: String, email: String, password: String): RegisterResponse {
@@ -48,7 +51,8 @@ class UserRepository private constructor(
             requestImageFile
         )
         try {
-            val successResponse = apiService.uploadImage(multipartBody, requestBody)
+            val token = userPreference.getToken().first()
+            val successResponse = ApiConfig.getApiService(token).uploadImage(multipartBody, requestBody)
             Log.d("API Response", "Response: $successResponse")
             emit(Result.Success(successResponse))
         } catch (e: HttpException) {
@@ -65,9 +69,9 @@ class UserRepository private constructor(
         @Volatile
         private var INSTANCE: UserRepository? = null
 
-        fun getInstance(apiService: ApiService): UserRepository {
+        fun getInstance(apiService: ApiService, userPreference: UserPreference): UserRepository {
             return INSTANCE ?: synchronized(this) {
-                val instance = UserRepository(apiService)
+                val instance = UserRepository(apiService,userPreference)
                 INSTANCE = instance
                 instance
             }
