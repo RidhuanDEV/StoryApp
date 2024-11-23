@@ -1,12 +1,15 @@
 package com.dicoding.storyapp.data
 
+import android.util.Log
 import androidx.lifecycle.liveData
 import com.dicoding.storyapp.data.api.ApiService
 import com.dicoding.storyapp.data.api.ErrorResponse
 import com.dicoding.storyapp.data.api.FileUploadResponse
 import com.dicoding.storyapp.data.api.LoginResponse
 import com.dicoding.storyapp.data.api.RegisterResponse
+import com.dicoding.storyapp.data.pref.UserPreference
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.first
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -16,7 +19,7 @@ import java.io.File
 import java.io.IOException
 
 class UserRepository private constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
 ) {
 
     suspend fun registerUser(name: String, email: String, password: String): RegisterResponse {
@@ -46,12 +49,15 @@ class UserRepository private constructor(
         )
         try {
             val successResponse = apiService.uploadImage(multipartBody, requestBody)
+            Log.d("API Response", "Response: $successResponse")
             emit(Result.Success(successResponse))
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
+            Log.e("API Error", "Error Body: $errorBody")
             val errorResponse = Gson().fromJson(errorBody, FileUploadResponse::class.java)
             emit(errorResponse.message?.let { Result.Error(it) })
         }
+
 
     }
 

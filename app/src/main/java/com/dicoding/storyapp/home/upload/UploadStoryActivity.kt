@@ -13,20 +13,26 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.dicoding.storyapp.R
 import com.dicoding.storyapp.ViewModelFactory
 import com.dicoding.storyapp.data.Result
+import com.dicoding.storyapp.data.pref.UserPreference
+import com.dicoding.storyapp.data.pref.dataStore
 import com.dicoding.storyapp.databinding.ActivityUploadStoryBinding
 import com.dicoding.storyapp.getImageUri
 import com.dicoding.storyapp.home.HomeActivity
 import com.dicoding.storyapp.reduceFileImage
 import com.dicoding.storyapp.uriToFile
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class UploadStoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUploadStoryBinding
     private var currentImageUri: Uri? = null
 
     private lateinit var viewModel: UploadStoryViewModel
+
 
     private val requestPermissionLauncer = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -50,6 +56,7 @@ class UploadStoryActivity : AppCompatActivity() {
         binding = ActivityUploadStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         if (!allPermissionsGranted()) {
             requestPermissionLauncer.launch(REQUIRED_PERMISSION)
         }
@@ -64,10 +71,13 @@ class UploadStoryActivity : AppCompatActivity() {
 
     private fun uploadImage() {
         currentImageUri?.let { uri ->
-            val imageFile = uriToFile(uri, this).reduceFileImage()
+            lifecycleScope.launch {
+            val imageFile = uriToFile(uri, this@UploadStoryActivity).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.edAddDescription.text.toString()
-            viewModel.uploadImage(imageFile, description).observe(this) { result ->
+
+
+            viewModel.uploadImage( imageFile, description).observe(this@UploadStoryActivity) { result ->
                 if (result != null) {
                     when (result) {
                         is Result.Loading -> {
@@ -76,7 +86,7 @@ class UploadStoryActivity : AppCompatActivity() {
 
                         is Result.Success -> {
                             result.data.message?.let { showToast(it) }
-                            val intent = Intent(this, HomeActivity::class.java)
+                            val intent = Intent(this@UploadStoryActivity, HomeActivity::class.java)
                             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                             startActivity(intent)
                             showLoading(false)
@@ -90,6 +100,7 @@ class UploadStoryActivity : AppCompatActivity() {
                 }
             }
         } ?: showToast(getString(R.string.empty_image_warning))
+    }
     }
 
     private fun startCamera() {
