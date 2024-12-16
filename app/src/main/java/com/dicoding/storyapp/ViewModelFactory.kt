@@ -8,6 +8,7 @@ import com.dicoding.storyapp.data.pref.UserPreference
 import com.dicoding.storyapp.data.pref.dataStore
 import com.dicoding.storyapp.di.Injection
 import com.dicoding.storyapp.home.HomeViewModel
+import com.dicoding.storyapp.home.maps.MapsViewModel
 import com.dicoding.storyapp.home.upload.UploadStoryViewModel
 import com.dicoding.storyapp.main.MainViewModel
 
@@ -22,10 +23,13 @@ class ViewModelFactory private constructor(
                 MainViewModel(userRepository, userPreference) as T
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) ->{
-                HomeViewModel(userPreference) as T
+                HomeViewModel(userPreference, userRepository) as T
             }
             modelClass.isAssignableFrom(UploadStoryViewModel::class.java) -> {
                 UploadStoryViewModel(userRepository) as T
+            }
+            modelClass.isAssignableFrom(MapsViewModel::class.java) -> {
+                MapsViewModel(userRepository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
@@ -44,5 +48,6 @@ class ViewModelFactory private constructor(
                 instance
             }
         }
+
     }
 }

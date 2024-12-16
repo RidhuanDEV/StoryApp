@@ -6,16 +6,17 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.storyapp.R
 import com.dicoding.storyapp.ViewModelFactory
 import com.dicoding.storyapp.databinding.ActivityHomeBinding
+import com.dicoding.storyapp.home.maps.MapsActivity
 import com.dicoding.storyapp.home.upload.UploadStoryActivity
 import com.dicoding.storyapp.login.LoginActivity
-import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var viewModel: HomeViewModel
@@ -27,23 +28,13 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        lifecycleScope.launch {
-            val factory = ViewModelFactory.getInstance(this@HomeActivity)
-            viewModel = ViewModelProvider(this@HomeActivity, factory)[HomeViewModel::class.java]
-            viewModel.listStoryItem.observe(this@HomeActivity) { story ->
-                if (story != null) {
-                    storyAdapter.submitList(story.listStory)
-                } else {
-                    Toast.makeText(this@HomeActivity, "Data is Empty", Toast.LENGTH_SHORT).show()
-                }
-            }
-            viewModel.isLoading.observe(this@HomeActivity) { isLoading ->
-                showLoading(isLoading)
-            }
+        val factory = ViewModelFactory.getInstance(this@HomeActivity)
+        viewModel = ViewModelProvider(this, factory)[HomeViewModel::class.java]
 
-            setupRecycleView()
-            viewModel.findListStoryItem()
-        }
+
+        setupRecycleView()
+        observeViewModel()
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -58,16 +49,51 @@ class HomeActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
+
+            R.id.maps -> {
+                val intent = Intent(this, MapsActivity::class.java)
+                startActivity(intent)
+                true
+            }
+
             R.id.action_logout -> {
+                showLogoutDialog()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+    private fun showLogoutDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(R.string.logout_confirmation)
+            .setPositiveButton(R.string.yes) { dialog, id ->
                 viewModel.logout()
                 Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()
-                true
             }
-            else -> super.onOptionsItemSelected(item)
+            .setNegativeButton(R.string.no) { dialog, id ->
+                dialog.dismiss()
+            }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun observeViewModel() {
+        viewModel.stories.observe(this) { story ->
+            if (story != null) {
+                storyAdapter.submitData(lifecycle, story)
+            } else {
+                Toast.makeText(this, "Data is Empty", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            showLoading(isLoading)
         }
     }
 
@@ -77,7 +103,21 @@ class HomeActivity : AppCompatActivity() {
         }
         binding.rvEvent.apply {
             layoutManager = LinearLayoutManager(this@HomeActivity)
-            adapter = storyAdapter
+            adapter = storyAdapter.withLoadStateFooter(
+                footer = LoadingStateAdapter { storyAdapter.retry() }
+            )
+        }
+        storyAdapter.addLoadStateListener { loadState ->
+            binding.progressBar.visibility = if (loadState.source.refresh is LoadState.Loading) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+
+            if (loadState.source.refresh is LoadState.Error) {
+                val errorState = loadState.source.refresh as LoadState.Error
+                Toast.makeText(this, "Source Error : ${errorState.error.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

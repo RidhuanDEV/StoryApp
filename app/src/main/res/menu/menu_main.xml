@@ -7,8 +7,14 @@
         android:icon="@drawable/ic_upload"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/maps"
+        android:icon="@drawable/ic_maps"
+        android:title="@string/title_activity_maps"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:icon="@drawable/ic_logout"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom"/>
+
 </menu>

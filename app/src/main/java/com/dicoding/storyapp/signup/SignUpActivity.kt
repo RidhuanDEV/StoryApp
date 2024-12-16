@@ -1,14 +1,19 @@
 package com.dicoding.storyapp.signup
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
-import androidx.appcompat.app.AlertDialog
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.dicoding.storyapp.ViewModelFactory
 import com.dicoding.storyapp.databinding.ActivitySignUpBinding
+import com.dicoding.storyapp.login.LoginActivity
 import com.dicoding.storyapp.main.MainViewModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class SignUpActivity : AppCompatActivity() {
@@ -16,6 +21,7 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignUpBinding
     private lateinit var viewModel: MainViewModel
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignUpBinding.inflate(layoutInflater)
@@ -31,6 +37,7 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setupAction() {
         binding.signupButton.setOnClickListener {
             val name = binding.edRegisterName.text.toString()
@@ -38,29 +45,15 @@ class SignUpActivity : AppCompatActivity() {
             val password = binding.edRegisterPassword.text.toString()
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                showMessage("Oops!", "Please fill in all fields.")
+                showSnackbar("Please fill in all fields.", false)
                 return@setOnClickListener
             }
 
             if (password.length >= 8) {
                 viewModel.register(name, email, password)
             } else {
-                showMessage("Oops!", "Password must be at least 8 characters long.")
+                showSnackbar("Password must be at least 8 characters long.", false)
             }
-        }
-    }
-
-    private fun showMessage(title: String, message: String) {
-        AlertDialog.Builder(this).apply {
-            setTitle(title)
-            setMessage(message)
-            setPositiveButton("OK") { _, _ ->
-                if (title == "Yeah!") {
-                    finish()
-                }
-            }
-            create()
-            show()
         }
     }
 
@@ -68,6 +61,17 @@ class SignUpActivity : AppCompatActivity() {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun showSnackbar(message: String, isSuccess: Boolean) {
+        val snackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+        snackbar.setBackgroundTint(
+            if (isSuccess) getColor(android.R.color.holo_green_dark)
+            else getColor(android.R.color.holo_red_dark)
+        )
+        snackbar.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun observeViewModel() {
         viewModel.isLoading.observe(this) { isLoading ->
             showLoading(isLoading)
@@ -76,9 +80,15 @@ class SignUpActivity : AppCompatActivity() {
         viewModel.registerResponse.observe(this) { response ->
             viewModel.setLoading(false)
             if (response.error == false) {
-                showMessage("Yeah!", "Account with ${binding.edRegisterEmail.text} has been created. Please log in to see your stories.")
+                showSnackbar("Account created successfully! Please log in", true)
+                Handler(mainLooper).postDelayed({
+                    val intent = Intent(this, LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                }, 3000)
             } else {
-                showMessage("Oops!", response.message ?: "Registration failed")
+                showSnackbar(response.message ?: "Registration failed", false)
             }
         }
     }

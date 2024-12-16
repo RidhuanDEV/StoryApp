@@ -1,30 +1,30 @@
 <resources>
     <string name="app_name">StoryApp</string>
-    <string name="foto_main">foto_main</string>
-    <string name="main_title">Selamat datang di Dicoding Story!</string>
-    <string name="main_description">Mau berbagi ilmu tentang Android, iOS, Machine Learning, Cloud, Front-End, Back-End, dan bidang IT lainnya? Di Dicoding Story aja!</string>
-    <string name="main_login">Masuk</string>
-    <string name="main_signup">Daftar</string>
+    <string name="foto_main">photo_main</string>
+    <string name="main_title">Welcome to Dicoding Story!</string>
+    <string name="main_description">Want to share knowledge about Android, iOS, Machine Learning, Cloud, Front-End, Back-End, and other IT fields? Just do it on Dicoding Story!</string>
+    <string name="main_login">Login</string>
+    <string name="main_signup">Sign Up</string>
 
-    <string name="signup">Daftar</string>
-    <string name="login">Masuk</string>
-    <string name="message_welcome_page">Mau belajar Android, iOS, Machine Learning, Cloud, Front-End, Back-End, dan bidang IT lainnya? Di Dicoding aja!</string>
-    <string name="title_welcome_page">Selamat datang di Dicoding!</string>
-    <string name="title_signup_page">Lengkapi data dirimu di bawah ini ya</string>
+    <string name="signup">Sign Up</string>
+    <string name="login">Login</string>
+    <string name="message_welcome_page">Want to learn Android, iOS, Machine Learning, Cloud, Front-End, Back-End, and other IT fields? Do it on Dicoding!</string>
+    <string name="title_welcome_page">Welcome to Dicoding!</string>
+    <string name="title_signup_page">Fill in your details below</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="message_login_page">Masukkan dulu datamu ya</string>
-    <string name="title_login_page">Sudah siap untuk upgrade skill?</string>
-    <string name="name">Nama</string>
-    <string name="message_main_page">Selamat Belajar di Dicoding.</string>
-    <string name="greeting">Halo %1$s,</string>
-    <string name="logout">Keluar</string>
-    <string name="gambar">gambar</string>
-    <string name="ed_name_signup">Masukkan Nama</string>
-    <string name="ed_password_signup">Masukkan Password</string>
-    <string name="ed_email_signup">Masukkan Email</string>
-    <string name="ed_email_login">Masukkan Email</string>
-    <string name="ed_password_login">Masukkan Password</string>
+    <string name="message_login_page">Please input your data first</string>
+    <string name="title_login_page">Ready to upgrade your skills?</string>
+    <string name="name">Name</string>
+    <string name="message_main_page">Happy Learning at Dicoding.</string>
+    <string name="greeting">Hello %1$s,</string>
+    <string name="logout">Logout</string>
+    <string name="gambar">image</string>
+    <string name="ed_name_signup">Enter Name</string>
+    <string name="ed_password_signup">Enter Password</string>
+    <string name="ed_email_signup">Enter Email</string>
+    <string name="ed_email_login">Enter Email</string>
+    <string name="ed_password_login">Enter Password</string>
     <string name="story_name">story name</string>
     <string name="imagestory">imageStory</string>
     <string name="list_story">List Story</string>
@@ -32,6 +32,22 @@
     <string name="gallery">Gallery</string>
     <string name="upload">Upload</string>
     <string name="description">Description</string>
-    <string name="empty_image_warning">image empty !</string>
-    <string name="add_description_hint">isi deskripsi</string>
+    <string name="empty_image_warning">image empty!</string>
+    <string name="add_description_hint">write description</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="normal_type">Normal</string>
+    <string name="satellite_type">Satellite</string>
+    <string name="terrain_type">Terrain</string>
+    <string name="hybrid_type">Hybrid</string>
+    <string name="retry">Try Again</string>
+    <string name="tambahkan_lokasi_opsional">Add My Location</string>
+    <string name="longitude">longitude</string>
+    <string name="latitude">latitude</string>
+    <string name="latitude_label">Latitude: %1$s</string>
+    <string name="longitude_label">Longitude: %1$s</string>
+    <string name="logout_confirmation">Do you want to logout?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+
 </resources>

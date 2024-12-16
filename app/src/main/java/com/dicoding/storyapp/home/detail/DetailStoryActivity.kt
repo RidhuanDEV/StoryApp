@@ -4,7 +4,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.dicoding.storyapp.data.api.ListStoryItem
+import com.dicoding.storyapp.R
+import com.dicoding.storyapp.data.database.entity.ListStoryEntity
 import com.dicoding.storyapp.databinding.ActivityDetailStoryBinding
 
 class DetailStoryActivity : AppCompatActivity() {
@@ -16,12 +17,14 @@ class DetailStoryActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         @Suppress("DEPRECATION")
-        val storyItem: ListStoryItem? = intent.getParcelableExtra(itemDataList)
+        val storyItem: ListStoryEntity? = intent.getParcelableExtra(itemDataList)
         if (storyItem != null) {
             showLoading(true)
             binding.tvDetailName.text = storyItem.name
             binding.tvStoryTime.text = storyItem.createdAt
             binding.tvDetailDescription.text = storyItem.description
+            binding.tvLatitude.text = getString(R.string.latitude_label, storyItem.lat.toString())
+            binding.tvLongitude.text = getString(R.string.longitude_label, storyItem.lon.toString())
             Glide.with(this)
                 .load(storyItem.photoUrl)
                 .into(binding.ivDetailPhoto)

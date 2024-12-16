@@ -1,10 +1,11 @@
 package com.dicoding.storyapp.login
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -13,12 +14,14 @@ import com.dicoding.storyapp.data.pref.UserModel
 import com.dicoding.storyapp.databinding.ActivityLoginBinding
 import com.dicoding.storyapp.home.HomeActivity
 import com.dicoding.storyapp.main.MainViewModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: MainViewModel
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -40,6 +43,8 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun observeLoginResponse() {
         viewModel.isLoading.observe(this) { isLoading ->
             showLoading(isLoading)
@@ -48,10 +53,9 @@ class LoginActivity : AppCompatActivity() {
         viewModel.loginResponse.observe(this) { response ->
             if (response != null) {
                 viewModel.setLoading(false)
+                showSnackbar("Login Berhasil", true)
                 if (!response.error!!) {
-                    Toast.makeText(this, "Login Berhasil", Toast.LENGTH_SHORT).show()
 
-                    // Simpan token ke UserPreference
                     lifecycleScope.launch {
                         val user = UserModel(
                             email = binding.edLoginEmail.text.toString(),
@@ -66,32 +70,43 @@ class LoginActivity : AppCompatActivity() {
                         finish()
                     }
                 } else {
-                    Toast.makeText(this, response.message ?: "Login Gagal", Toast.LENGTH_SHORT).show()
+                    showSnackbar(response.message ?: "User not found", false)
                 }
             } else {
                 viewModel.setLoading(false)
-                Toast.makeText(this, "Terjadi kesalahan. Coba lagi.", Toast.LENGTH_SHORT).show()
+                showSnackbar("Terjadi kesalahan. Coba lagi.", false)
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun validateInput(email: String, password: String): Boolean {
         return when {
             email.isEmpty() -> {
-                Toast.makeText(this, "Email tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                showSnackbar("Email tidak boleh kosong", false)
                 false
             }
-
             password.isEmpty() -> {
-                Toast.makeText(this, "Password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                showSnackbar("Password tidak boleh kosong", false)
                 false
             }
-
             else -> true
         }
     }
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun showSnackbar(message: String, isSuccess: Boolean) {
+        val snackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+        if (isSuccess) {
+            snackbar.setBackgroundTint(getColor(android.R.color.holo_green_dark))
+        } else {
+            snackbar.setBackgroundTint(getColor(android.R.color.holo_red_dark))
+        }
+        snackbar.show()
     }
 }

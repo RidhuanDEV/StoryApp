@@ -30,6 +30,7 @@
         android:layout_height="0dp"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
+        android:contentDescription="@string/signup"
         app:layout_constraintBottom_toTopOf="@+id/guidelineHorizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -81,7 +82,8 @@
             android:hint="@string/ed_name_signup"
             android:inputType="text"
             android:paddingStart="48dp"
-            android:paddingEnd="16dp" />
+            android:paddingEnd="16dp"
+            tools:ignore="SpeakableTextPresentCheck"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -118,7 +120,8 @@
             android:paddingTop="17dp"
             android:paddingEnd="16dp"
             android:paddingRight="16dp"
-            android:paddingBottom="17dp" />
+            android:paddingBottom="17dp"
+            tools:ignore="SpeakableTextPresentCheck"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -152,16 +155,18 @@
             android:hint="@string/ed_password_signup"
             android:inputType="textPassword"
             android:paddingStart="48dp"
-            android:paddingEnd="16dp" />
+            android:paddingEnd="16dp"
+            tools:ignore="SpeakableTextPresentCheck"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.dicoding.storyapp.MyButton
+    <Button
         android:id="@+id/signupButton"
         android:layout_width="0dp"
         android:layout_height="64dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="32dp"
+        android:backgroundTint="@color/navy"
         android:textColor="@color/buttonTextColor"
         android:text="@string/signup"
         app:layout_constraintEnd_toEndOf="parent"

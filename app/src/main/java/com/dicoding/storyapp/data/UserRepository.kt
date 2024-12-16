@@ -1,14 +1,23 @@
 package com.dicoding.storyapp.data
 
+
 import android.util.Log
-import androidx.datastore.dataStore
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.liveData
 import com.dicoding.storyapp.data.api.ApiConfig
 import com.dicoding.storyapp.data.api.ApiService
 import com.dicoding.storyapp.data.api.ErrorResponse
 import com.dicoding.storyapp.data.api.FileUploadResponse
+import com.dicoding.storyapp.data.api.ListStoryResponse
 import com.dicoding.storyapp.data.api.LoginResponse
 import com.dicoding.storyapp.data.api.RegisterResponse
+import com.dicoding.storyapp.data.database.entity.ListStoryEntity
+import com.dicoding.storyapp.data.database.room.StoryDatabase
 import com.dicoding.storyapp.data.pref.UserPreference
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
@@ -22,12 +31,13 @@ import java.io.IOException
 
 class UserRepository private constructor(
     private val apiService: ApiService,
-    private val userPreference: UserPreference
+    private val userPreference: UserPreference,
+    private val storyDatabase: StoryDatabase,
 ) {
 
     suspend fun registerUser(name: String, email: String, password: String): RegisterResponse {
         return try {
-            apiService.register(name, email, password) // Jika sukses, langsung return hasil
+            apiService.register(name, email, password)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
             val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
@@ -41,7 +51,7 @@ class UserRepository private constructor(
         return apiService.login(email, password)
     }
 
-    fun uploadImage(imageFile: File, description: String) = liveData {
+    fun uploadImage(imageFile: File, description: String, lat: Double?, lon: Double?) = liveData {
         emit(Result.Loading)
         val requestBody = description.toRequestBody("text/plain".toMediaType())
         val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
@@ -50,9 +60,18 @@ class UserRepository private constructor(
             imageFile.name,
             requestImageFile
         )
+
+        val latBody = lat?.toString()?.toRequestBody("text/plain".toMediaType())
+        val lonBody = lon?.toString()?.toRequestBody("text/plain".toMediaType())
+
         try {
             val token = userPreference.getToken().first()
-            val successResponse = ApiConfig.getApiService(token).uploadImage(multipartBody, requestBody)
+            val successResponse = ApiConfig.getApiService(token).uploadImage(
+                multipartBody,
+                requestBody,
+                latBody,
+                lonBody
+            )
             Log.d("API Response", "Response: $successResponse")
             emit(Result.Success(successResponse))
         } catch (e: HttpException) {
@@ -61,17 +80,43 @@ class UserRepository private constructor(
             val errorResponse = Gson().fromJson(errorBody, FileUploadResponse::class.java)
             emit(errorResponse.message?.let { Result.Error(it) })
         }
-
-
     }
+
+
+    @OptIn(ExperimentalPagingApi::class)
+    fun getStory(): LiveData<PagingData<ListStoryEntity>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 5,
+                enablePlaceholders = false
+            ),
+            remoteMediator = QuoteRemoteMediator(storyDatabase, userPreference),
+            pagingSourceFactory = { storyDatabase.storyDao().getAllList() }
+        ).liveData
+    }
+
+    suspend fun getMaps(): Result<ListStoryResponse> {
+        return try {
+            val token = userPreference.getToken().first()
+            val response = ApiConfig.getApiService(token).getStoriesWithLocation()
+            Result.Success(response)
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val errorResponse = Gson().fromJson(errorBody, FileUploadResponse::class.java)
+            Result.Error(errorResponse.message ?: "Unknown error")
+        } catch (e: Exception) {
+            Result.Error("Unexpected error: ${e.localizedMessage}")
+        }
+    }
+
 
     companion object {
         @Volatile
         private var INSTANCE: UserRepository? = null
 
-        fun getInstance(apiService: ApiService, userPreference: UserPreference): UserRepository {
+        fun getInstance(apiService: ApiService, userPreference: UserPreference, storyDatabase: StoryDatabase): UserRepository {
             return INSTANCE ?: synchronized(this) {
-                val instance = UserRepository(apiService,userPreference)
+                val instance = UserRepository(apiService,userPreference, storyDatabase)
                 INSTANCE = instance
                 instance
             }
