@@ -119,16 +119,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             mMap.isMyLocationEnabled = true
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                if (location != null) {
-                    val userLocation = LatLng(location.latitude, location.longitude)
-                    mMap.addMarker(MarkerOptions().position(userLocation).title("My Location"))
-                    mMap.addMarker(MarkerOptions().position(userLocation).snippet("My Home Please Stay Away!, Oh I need you!"))
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
-                }
-            }
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
@@ -168,11 +158,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             val description = story?.description
 
                             if (latitude != null && longitude != null && placeName != null && description != null) {
-                                TourismPlace(placeName, latitude, longitude, description)
+                                mMap.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(latitude, longitude))
+                                        .title(placeName)
+                                        .snippet(description)
+                                )
+                                boundsBuilder.include(LatLng(latitude, longitude))
+                                val bounds: LatLngBounds = boundsBuilder.build()
+                                mMap.animateCamera(
+                                    CameraUpdateFactory.newLatLngBounds(
+                                        bounds,
+                                        resources.displayMetrics.widthPixels,
+                                        resources.displayMetrics.heightPixels,
+                                        300
+                                    )
+                                )
+
                             } else {
                                 null
                             }
-                        }.let { addManyMarker(it) }
+                        }
                     }
                 }
 
@@ -184,43 +190,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
-    }
-
-    data class TourismPlace(
-        val name: String,
-        val latitude: Double,
-        val longitude: Double,
-        val description: String
-    )
-
-    private fun addManyMarker(tourismPlaces: List<TourismPlace?>) {
-        tourismPlaces.forEach { tourism ->
-            val latLng = tourism?.let {
-                LatLng(
-                    tourism.latitude,
-                    it.longitude
-                )
-            }
-            latLng?.let {
-                MarkerOptions()
-                    .position(it)
-                    .title(tourism.name)
-                    .snippet(tourism.description)
-            }?.let { mMap.addMarker(it) }
-            if (latLng != null) {
-                boundsBuilder.include(latLng)
-            }
-        }
-
-        val bounds: LatLngBounds = boundsBuilder.build()
-        mMap.animateCamera(
-            CameraUpdateFactory.newLatLngBounds(
-                bounds,
-                resources.displayMetrics.widthPixels,
-                resources.displayMetrics.heightPixels,
-                300 // Margin
-            )
-        )
     }
 
 

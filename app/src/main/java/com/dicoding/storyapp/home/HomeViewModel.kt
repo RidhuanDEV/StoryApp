@@ -9,6 +9,7 @@ import androidx.paging.cachedIn
 import com.dicoding.storyapp.data.UserRepository
 import com.dicoding.storyapp.data.database.entity.ListStoryEntity
 import com.dicoding.storyapp.data.pref.UserPreference
+import com.dicoding.storyapp.utils.wrapEspressoIdlingResource
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val userPreference: UserPreference, private val repository: UserRepository) : ViewModel() {
@@ -22,7 +23,9 @@ class HomeViewModel(private val userPreference: UserPreference, private val repo
 
     fun logout(){
         viewModelScope.launch {
+            wrapEspressoIdlingResource {
             userPreference.logout()
+            }
         }
     }
 

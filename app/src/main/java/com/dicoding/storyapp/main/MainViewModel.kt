@@ -78,27 +78,12 @@ class MainViewModel(
                     }
                     _loginResponse.postValue(response)
                 } catch (e: HttpException) {
-                    val errorBody = e.response()?.errorBody()?.string()
-                    val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
                     _loginResponse.postValue(
-                        LoginResponse(
-                            error = true,
-                            message = errorResponse.message ?: "Login Failed"
-                        )
+                        LoginResponse(error = true, message = "Login Failed")
                     )
                 } catch (e: IOException) {
                     _loginResponse.postValue(
-                        LoginResponse(
-                            error = true,
-                            message = "Network Error, Check your Internet Connection."
-                        )
-                    )
-                } catch (e: Exception) {
-                    _loginResponse.postValue(
-                        LoginResponse(
-                            error = true,
-                            message = "Unknown Error has Occurred."
-                        )
+                        LoginResponse(error = true, message = "Network Error")
                     )
                 } finally {
                     _isLoading.postValue(false)
@@ -106,6 +91,7 @@ class MainViewModel(
             }
         }
     }
+
 
     fun getSession(): LiveData<UserModel> {
         return userPreference.getSession().asLiveData()

@@ -1,6 +1,7 @@
 package com.dicoding.storyapp.signup
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
@@ -14,6 +15,9 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dicoding.storyapp.R
 import com.dicoding.storyapp.login.LoginActivity
+import com.dicoding.storyapp.utils.EspressoIdlingResource
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,22 +28,30 @@ class SignUpActivityTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(SignUpActivity::class.java)
 
+    @Before
+    fun setUp() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
+        Intents.init()
+    }
+
+    @After
+    fun tearDown() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
+        Intents.release()
+    }
+
     @Test
     fun testSignUpSuccess() {
 
-        Intents.init()
-
         onView(withId(R.id.ed_register_name)).perform(typeText("Test User"), closeSoftKeyboard())
-        onView(withId(R.id.ed_register_email)).perform(typeText("testuserRidhuan121@gmail.com"), closeSoftKeyboard())
+        onView(withId(R.id.ed_register_email)).perform(typeText("testuserRidhuadnee121@gmail.com"), closeSoftKeyboard())
         onView(withId(R.id.ed_register_password)).perform(typeText("password123"), closeSoftKeyboard())
 
         onView(withId(R.id.signupButton)).perform(click())
 
-        Thread.sleep(15000)
+        onView(withText("Account created successfully! Please log in"))
+            .check(matches(isDisplayed()))
 
-        Intents.intended(IntentMatchers.hasComponent(LoginActivity::class.java.name))
-
-        Intents.release()
     }
 
     @Test

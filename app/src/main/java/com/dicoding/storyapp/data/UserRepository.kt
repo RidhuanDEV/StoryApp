@@ -19,6 +19,7 @@ import com.dicoding.storyapp.data.api.RegisterResponse
 import com.dicoding.storyapp.data.database.entity.ListStoryEntity
 import com.dicoding.storyapp.data.database.room.StoryDatabase
 import com.dicoding.storyapp.data.pref.UserPreference
+import com.dicoding.storyapp.utils.wrapEspressoIdlingResource
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import okhttp3.MediaType.Companion.toMediaType
@@ -36,19 +37,27 @@ class UserRepository private constructor(
 ) {
 
     suspend fun registerUser(name: String, email: String, password: String): RegisterResponse {
-        return try {
-            apiService.register(name, email, password)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
-            RegisterResponse(true, errorResponse.message ?: "Unknown error occurred") // Kembalikan error dengan format response
-        } catch (e: IOException) {
+        wrapEspressoIdlingResource {
+            return try {
+                apiService.register(name, email, password)
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                RegisterResponse(
+                    true,
+                    errorResponse.message ?: "Unknown error occurred"
+                ) // Kembalikan error dengan format response
+            } catch (e: IOException) {
 
-            RegisterResponse(true, "Network error: ${e.localizedMessage}")
+                RegisterResponse(true, "Network error: ${e.localizedMessage}")
+            }
         }
     }
+
     suspend fun loginUser(email: String, password: String): LoginResponse {
-        return apiService.login(email, password)
+        wrapEspressoIdlingResource {
+            return apiService.login(email, password)
+        }
     }
 
     fun uploadImage(imageFile: File, description: String, lat: Double?, lon: Double?) = liveData {
@@ -114,9 +123,13 @@ class UserRepository private constructor(
         @Volatile
         private var INSTANCE: UserRepository? = null
 
-        fun getInstance(apiService: ApiService, userPreference: UserPreference, storyDatabase: StoryDatabase): UserRepository {
+        fun getInstance(
+            apiService: ApiService,
+            userPreference: UserPreference,
+            storyDatabase: StoryDatabase
+        ): UserRepository {
             return INSTANCE ?: synchronized(this) {
-                val instance = UserRepository(apiService,userPreference, storyDatabase)
+                val instance = UserRepository(apiService, userPreference, storyDatabase)
                 INSTANCE = instance
                 instance
             }
